@@ -31,4 +31,4 @@ jobs:
           aws-region: us-east-1  # Change this to your region of your bucket  
     
       - name: Sync to S3
-        run: aws s3 sync build/ s3://${{ secrets.AWS_S3_BUCKET }}
+        run: aws s3 sync build/* s3://${{ secrets.AWS_S3_BUCKET }}

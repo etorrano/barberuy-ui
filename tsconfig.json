@@ -1,0 +1,19 @@
+{
+  "include": ["src", "./declaration.d.ts"],
+  "extends": "./tsconfig.paths.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "sourceMap": true,
+    "noEmitOnError": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "target": "ES6",
+    "jsx": "react-jsx",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node"
+  }
+}

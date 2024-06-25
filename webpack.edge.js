@@ -2,6 +2,7 @@ const path = require("path");
 
 module.exports = {
   entry: "./server/lambda-edge-server.tsx",
+  mode: "production",
   target: "node",
   externals: [],
   module: {
@@ -43,33 +44,8 @@ module.exports = {
         ],
       },
       {
-        test: /\.(jpe?g|png|gif|svg)$/i,
-        use: [
-          {
-            loader: "file-loader",
-            options: {
-              query: {
-                name: "assets/[name].[ext]",
-              },
-            },
-          },
-          {
-            loader: "image-webpack-loader",
-            options: {
-              query: {
-                mozjpeg: {
-                  progressive: true,
-                },
-                gifsicle: {
-                  interlaced: true,
-                },
-                optipng: {
-                  optimizationLevel: 7,
-                },
-              },
-            },
-          },
-        ],
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        type: "asset/resource",
       },
     ],
   },

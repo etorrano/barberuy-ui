@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/register": "^7.24.6",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "ignore-styles": "^5.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.2.1",
@@ -17,6 +20,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "ssr": "npm run build && node server/index.ts",
+    "build:edge": "webpack --config webpack.edge.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -39,8 +44,13 @@
     ]
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.24.7",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "typescript": "^4.9.5"
+    "file-loader": "^6.2.0",
+    "image-webpack-loader": "^8.1.0",
+    "typescript": "^4.9.5",
+    "typings-for-css-modules-loader": "^1.7.0",
+    "webpack-cli": "^5.1.4"
   }
 }

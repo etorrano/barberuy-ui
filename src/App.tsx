@@ -1,7 +1,6 @@
+import React from "react";
 import "./App.scss";
-import LoginRegister from "./Components/LoginRegister/LoginRegister";
-
-const logo = require("./logo.png");
+import logo from "./logo.png";
 
 function App() {
   return (

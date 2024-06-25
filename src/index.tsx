@@ -3,16 +3,24 @@ import ReactDOM from "react-dom/client";
 import "./index.scss";
 import App from "./App.tsx";
 import reportWebVitals from "./reportWebVitals.tsx";
-import { BrowserRouter } from "react-router-dom";
+import LoginRegister from "./Components/LoginRegister/LoginRegister";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
-);
-root.render(
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+  },
+  {
+    path: "/login",
+    element: <LoginRegister />,
+  },
+]);
+
+ReactDOM.hydrateRoot(
+  document.getElementById("root") as HTMLElement,
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 

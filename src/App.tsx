@@ -1,5 +1,4 @@
 import "./App.scss";
-import LoginRegister from "./Components/LoginRegister/LoginRegister";
 
 const logo = require("./logo.png");
 

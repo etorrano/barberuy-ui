@@ -8,6 +8,7 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "aws-sdk": "^2.1648.0",
     "ignore-styles": "^5.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -22,8 +23,13 @@
     "build": "react-scripts build",
     "ssr": "npm run build && node server/index.ts",
     "build:edge": "webpack --config webpack.edge.js",
+    "build:lambda": "webpack --config webpack.lambda.js",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test:lambda": "node -e \"console.log(require('./dist/index.js').handler(require('./event.json')));\"",
+    "eject": "react-scripts eject",
+    "dev:build-client": "dotenv -e .env.development react-scripts build",
+    "dev:start": "nodemon",
+    "dev": "npm-run-all dev:build-client dev:start"
   },
   "eslintConfig": {
     "extends": [
@@ -47,8 +53,13 @@
     "@babel/preset-typescript": "^7.24.7",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "dotenv-cli": "^7.4.2",
     "file-loader": "^6.2.0",
     "image-webpack-loader": "^8.1.0",
+    "nodemon": "^3.1.4",
+    "npm-run-all": "^4.1.5",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^4.9.5",
     "typings-for-css-modules-loader": "^1.7.0",
     "webpack-cli": "^5.1.4"

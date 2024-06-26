@@ -1,4 +1,81 @@
+import AWS from "aws-sdk";
 import React from "react";
+import ReactDOMServer from "react-dom/server";
+import { StaticRouter } from "react-router-dom/server";
+import { Writable } from "stream";
+
+class HtmlWritable extends Writable {
+  chunks: any[] = [];
+  html = "";
+
+  getHtml() {
+    return this.html;
+  }
+
+  _write(chunk: any, encoding: any, callback: any) {
+    this.chunks.push(chunk);
+    callback();
+  }
+
+  _final(callback: any) {
+    this.html = Buffer.concat(this.chunks).toString();
+    callback();
+  }
+}
+const writable = new HtmlWritable();
+
+const handler = async function (event: any) {
+  try {
+    const request = event.Records[0].cf.request;
+    const s3 = new AWS.S3();
+    const params = { Bucket: "barberuy-s3-dev-ui", Key: "index.html" };
+    const s3Object = await s3.getObject(params).promise();
+    const data = s3Object.Body?.toString() || "";
+    console.log(data);
+    const { pipe } = ReactDOMServer.renderToPipeableStream(
+      <React.StrictMode>
+        <StaticRouter location={request.uri} />
+      </React.StrictMode>,
+      {
+        onShellReady() {
+          pipe(writable);
+        },
+        onShellError() {
+          return {
+            statusCode: 500,
+            headers: { "Content-Type": "text/html" },
+            body: "<!doctype html><p>Loading...</p>",
+          };
+        },
+      }
+    );
+    console.log("await writable on finish");
+    await new Promise((resolve, reject) => {
+      writable.on("finish", resolve);
+    });
+
+    const html = writable.getHtml();
+    console.log("writable on finish");
+    console.log(html);
+    const indexHTML = data
+      .toString()
+      .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
+    console.log("html");
+    console.log(indexHTML);
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "text/html" },
+      body: indexHTML,
+    };
+  } catch (error: any) {
+    console.log(`Error ${error.message}`);
+    return `Error ${error}`;
+  }
+};
+
+export { handler };
+
+/*import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { Writable } from "stream";
 import { StaticRouter } from "react-router-dom/server";
@@ -66,7 +143,7 @@ const handler = async function (event) {
       
       const newuri = `/${subdomain}.html`;
       request.uri = newuri;
-    }*/
+    }
 
     if (subdomain !== "www" && request.uri === "/edgessr") {
       //const url = config.SSRApiStack.apiurl;
@@ -96,7 +173,7 @@ const handler = async function (event) {
             },
             body: body,
           };
-        }*/
+        }
 
       const entryPoint = ["/main.js"];
 
@@ -166,7 +243,7 @@ const handler = async function (event) {
       });
       /*});*/
 
-      /*const app = ReactDOMServer.renderToString(<SSRApp data={result.data} />);
+/*const app = ReactDOMServer.renderToString(<SSRApp data={result.data} />);
       const html = indexFile.replace(
         '<div id="root"></div>',
         `<div id="root">${app}</div>`
@@ -189,7 +266,7 @@ const handler = async function (event) {
           ],
         },
         body: html,
-      };*/
+      };
     } else {
       return request;
     }
@@ -199,4 +276,6 @@ const handler = async function (event) {
   }
 };
 
-export { handler };
+export { handler }; 
+
+*/

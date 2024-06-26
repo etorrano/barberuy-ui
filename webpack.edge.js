@@ -53,8 +53,9 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js"],
   },
   output: {
-    filename: "bundle.js",
-    path: path.resolve(__dirname, "dist"),
-    libraryTarget: "commonjs",
+    filename: "index.js",
+    path: path.resolve(__dirname, "dist/edge"),
+    library: "index",
+    libraryTarget: "umd",
   },
 };

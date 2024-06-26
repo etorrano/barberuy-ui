@@ -7,7 +7,7 @@ require("@babel/register")({
     "@babel/preset-react",
     "@babel/preset-typescript",
   ],
-  extensions: [".jsx", ".js", ".tsx", ".ts", ".scss", ".png"],
+  extensions: [".jsx", ".js", ".tsx", ".ts"],
 });
 
 require("./server");

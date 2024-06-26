@@ -14,11 +14,15 @@ class HtmlWritable extends Writable {
 
   _write(chunk: any, encoding: any, callback: any) {
     this.chunks.push(chunk);
+    console.log("write");
+    console.log(this.chunks);
     callback();
   }
 
   _final(callback: any) {
     this.html = Buffer.concat(this.chunks).toString();
+    console.log("final");
+    console.log(this.html);
     callback();
   }
 }
@@ -42,8 +46,22 @@ const handler = async function (event: any) {
         },
         onShellError() {
           return {
-            statusCode: 500,
-            headers: { "Content-Type": "text/html" },
+            status: 500,
+            statusDescription: "OK",
+            headers: {
+              "cache-control": [
+                {
+                  key: "Cache-Control",
+                  value: "max-age=100",
+                },
+              ],
+              "content-type": [
+                {
+                  key: "Content-Type",
+                  value: "text/html",
+                },
+              ],
+            },
             body: "<!doctype html><p>Loading...</p>",
           };
         },
@@ -52,6 +70,7 @@ const handler = async function (event: any) {
     console.log("await writable on finish");
     await new Promise((resolve, reject) => {
       writable.on("finish", resolve);
+      console.log("finished");
     });
 
     const html = writable.getHtml();
@@ -63,8 +82,22 @@ const handler = async function (event: any) {
     console.log("html");
     console.log(indexHTML);
     return {
-      statusCode: 200,
-      headers: { "Content-Type": "text/html" },
+      status: "200",
+      statusDescription: "OK",
+      headers: {
+        "cache-control": [
+          {
+            key: "Cache-Control",
+            value: "max-age=100",
+          },
+        ],
+        "content-type": [
+          {
+            key: "Content-Type",
+            value: "text/html",
+          },
+        ],
+      },
       body: indexHTML,
     };
   } catch (error: any) {

@@ -44,102 +44,106 @@ const handler = awslambda.streamifyResponse(
     //const handler = async function (event: any) {
     try {
       const request = event.Records[0].cf.request;
-      /* if (["/", "/index.html"].indexOf(request.uri) !== -1) { */
       const s3 = new AWS.S3();
-      const params = { Bucket: "barberuy-s3-dev-ui", Key: "index.html" };
+      const params = {
+        Bucket: "barberuy-s3-dev-ui",
+        Key: request.uri.replace("/", ""),
+      };
       const s3Object = await s3.getObject(params).promise();
       const data = s3Object.Body?.toString() || "";
-      console.log(data);
+      if (["/", "/index.html"].indexOf(request.uri) !== -1) {
+        console.log(data);
 
-      let fetchRequest = createFetchRequest(
-        event.Records[0].cf.request,
-        responseStream
-      );
-      let context = await routerStaticHandler.query(fetchRequest);
-      let router = createStaticRouter(
-        routerStaticHandler.dataRoutes,
-        context as StaticHandlerContext
-      );
-      const { pipe } = ReactDOMServer.renderToPipeableStream(
-        <StaticRouterProvider
-          router={router}
-          context={context as StaticHandlerContext}
-        />,
-        {
-          onShellReady() {
-            console.log("shell ready");
-            pipe(writable);
-          },
-          onAllReady() {},
-          onShellError() {
-            return {
-              status: 500,
-              statusDescription: "OK",
-              headers: {
-                "cache-control": [
-                  {
-                    key: "Cache-Control",
-                    value: "max-age=100",
-                  },
-                ],
-                "content-type": [
-                  {
-                    key: "Content-Type",
-                    value: "text/html",
-                  },
-                ],
+        let fetchRequest = createFetchRequest(
+          event.Records[0].cf.request,
+          responseStream
+        );
+        let context = await routerStaticHandler.query(fetchRequest);
+        let router = createStaticRouter(
+          routerStaticHandler.dataRoutes,
+          context as StaticHandlerContext
+        );
+        const { pipe } = ReactDOMServer.renderToPipeableStream(
+          <StaticRouterProvider
+            router={router}
+            context={context as StaticHandlerContext}
+          />,
+          {
+            onShellReady() {
+              console.log("shell ready");
+              pipe(writable);
+            },
+            onAllReady() {},
+            onShellError() {
+              return {
+                status: 500,
+                statusDescription: "OK",
+                headers: {
+                  "cache-control": [
+                    {
+                      key: "Cache-Control",
+                      value: "max-age=100",
+                    },
+                  ],
+                  "content-type": [
+                    {
+                      key: "Content-Type",
+                      value: "text/html",
+                    },
+                  ],
+                },
+                body: "<!doctype html><p>Loading...</p>",
+              };
+            },
+          }
+        );
+        console.log("await writable on finish");
+        await new Promise((resolve, reject) => {
+          writable.on("finish", resolve);
+          console.log("finished");
+        });
+
+        /*writable.on("finish", () => {*/
+        const html = writable.getHtml();
+        console.log("writable on finish");
+        console.log(html);
+        const indexHTML = data
+          .toString()
+          .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
+        console.log("html");
+        console.log(indexHTML);
+        const response = {
+          status: "200",
+          statusDescription: "OK",
+          headers: {
+            "cache-control": [
+              {
+                key: "Cache-Control",
+                value: "no-cache",
               },
-              body: "<!doctype html><p>Loading...</p>",
-            };
+            ],
+            "content-type": [
+              {
+                key: "Content-Type",
+                value: "text/html",
+              },
+            ],
           },
-        }
-      );
-      console.log("await writable on finish");
-      await new Promise((resolve, reject) => {
-        writable.on("finish", resolve);
-        console.log("finished");
-      });
+          body: indexHTML,
+        };
+        responseStream.setContentType("application/json");
+        responseStream.write(response);
+        responseStream.end();
+        /*responseStream.end(response);*/
 
-      /*writable.on("finish", () => {*/
-      const html = writable.getHtml();
-      console.log("writable on finish");
-      console.log(html);
-      const indexHTML = data
-        .toString()
-        .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
-      console.log("html");
-      console.log(indexHTML);
-      const response = {
-        status: "200",
-        statusDescription: "OK",
-        headers: {
-          "cache-control": [
-            {
-              key: "Cache-Control",
-              value: "no-cache",
-            },
-          ],
-          "content-type": [
-            {
-              key: "Content-Type",
-              value: "text/html",
-            },
-          ],
-        },
-        body: indexHTML,
-      };
-      responseStream.setContentType("application/json");
-      responseStream.write(response);
-      responseStream.end();
-      /*responseStream.end(response);*/
-
-      /*responseStream.setContentType("text/html");
+        /*responseStream.setContentType("text/html");
         responseStream.write(indexHTML);
         responseStream.end();*/
-      /*});*/
-      /*    } else {
+        /*});*/
+      } else {
+        responseStream.write(data);
         responseStream.end();
-      } */
+      }
     } catch (error: any) {
       console.log(`Error ${error.message}`);
       return `Error ${error}`;

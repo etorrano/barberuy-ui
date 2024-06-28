@@ -1,9 +1,17 @@
 import AWS from "aws-sdk";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import { StaticRouter } from "react-router-dom/server";
+import {
+  createStaticHandler,
+  createStaticRouter,
+  StaticHandlerContext,
+  StaticRouter,
+  StaticRouterProvider,
+} from "react-router-dom/server";
 import { Writable } from "stream";
 import App from "../src/App";
+import { routes } from "../src/routes"; // @ts-ignore
+import createFetchRequest from "./request";
 
 class HtmlWritable extends Writable {
   chunks: any[] = [];
@@ -27,11 +35,12 @@ class HtmlWritable extends Writable {
     callback();
   }
 }
-const writable = new HtmlWritable();
+let routerStaticHandler = createStaticHandler(routes);
 
 // @ts-ignore
 const handler = awslambda.streamifyResponse(
   async (event: any, responseStream: any) => {
+    const writable = new HtmlWritable();
     //const handler = async function (event: any) {
     try {
       const request = event.Records[0].cf.request;
@@ -41,10 +50,21 @@ const handler = awslambda.streamifyResponse(
       const s3Object = await s3.getObject(params).promise();
       const data = s3Object.Body?.toString() || "";
       console.log(data);
+
+      let fetchRequest = createFetchRequest(
+        event.Records[0].cf.request,
+        responseStream
+      );
+      let context = await routerStaticHandler.query(fetchRequest);
+      let router = createStaticRouter(
+        routerStaticHandler.dataRoutes,
+        context as StaticHandlerContext
+      );
       const { pipe } = ReactDOMServer.renderToPipeableStream(
-        <React.StrictMode>
-          <StaticRouter location={request.uri}></StaticRouter>
-        </React.StrictMode>,
+        <StaticRouterProvider
+          router={router}
+          context={context as StaticHandlerContext}
+        />,
         {
           onShellReady() {
             console.log("shell ready");

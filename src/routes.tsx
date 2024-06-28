@@ -1,5 +1,4 @@
 // @ts-ignore
-import App from "./App"; // @ts-ignore
 import Home from "./Components/Home/Home.tsx"; // @ts-ignore
 import LoginRegister from "./Components/LoginRegister/LoginRegister.tsx";
 import React from "react";

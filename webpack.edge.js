@@ -1,11 +1,10 @@
 const path = require("path");
-const nodeExternals = require("webpack-node-externals");
 
 module.exports = {
   entry: "./server/lambda-edge-server.tsx",
   mode: "production",
   target: "node",
-  externals: [nodeExternals()],
+  externals: [],
   module: {
     rules: [
       {

@@ -11,8 +11,9 @@ import {
   RouterProvider,
   Routes,
 } from "react-router-dom";
-import { router } from "./routes";
+import { routes } from "./routes";
 
+export const router = createBrowserRouter(routes);
 /* ReactDOM.hydrateRoot(
   document.getElementById("root") as HTMLElement,
   <React.StrictMode>
@@ -25,20 +26,20 @@ import { router } from "./routes";
   </React.StrictMode>
 ); */
 
-ReactDOM.hydrateRoot(
+/* ReactDOM.hydrateRoot(
   document.getElementById("root") as HTMLElement,
   <React.StrictMode>
     <BrowserRouter>
       <App />
     </BrowserRouter>
   </React.StrictMode>
-);
-/* ReactDOM.hydrateRoot(
+); */
+ReactDOM.hydrateRoot(
   document.getElementById("root") as HTMLElement,
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>
-); */
+);
 /* ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <RouterProvider router={router} />

@@ -1,27 +1,21 @@
 const path = require("path");
+const nodeExternals = require("webpack-node-externals");
 
 module.exports = {
   entry: "./server/lambda-edge-server.tsx",
   mode: "production",
   target: "node",
-  externals: [],
+  externals: [nodeExternals()],
   module: {
     rules: [
       {
-        test: /\.(?:js|mjs|cjs|tsx)$/,
+        test: /\.(?:js|mjs|cjs|tsx|ts)$/,
         exclude: /node_modules/,
         use: {
           loader: "babel-loader",
           options: {
             presets: [
-              [
-                "@babel/preset-env",
-                {
-                  targets: {
-                    node: 12,
-                  },
-                },
-              ],
+              ["@babel/preset-env"],
               "@babel/preset-react",
               ["@babel/preset-typescript", { allowNamespaces: true }],
             ],
@@ -50,7 +44,7 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: [".tsx", ".ts", ".js"],
+    extensions: [".tsx", ".ts", ".js", ".scss", ".png", ".css"],
   },
   output: {
     filename: "index.js",

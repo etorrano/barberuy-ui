@@ -1,24 +1,36 @@
-import { createBrowserRouter } from "react-router-dom";
-import App from "./App";
-import Home from "./Components/Home/Home";
-import LoginRegister from "./Components/LoginRegister/LoginRegister";
+// @ts-ignore
+import App from "./App"; // @ts-ignore
+import Home from "./Components/Home/Home.tsx"; // @ts-ignore
+import LoginRegister from "./Components/LoginRegister/LoginRegister.tsx";
 import React from "react";
 
 export const routes = [
   {
     path: "/",
-    element: <App />,
-    children: [
+    element: <Home />,
+    /* children: [
       {
         path: "",
-        element: <Home />,
+        element: <div></div>,
       },
       {
         path: "login",
-        element: <LoginRegister />,
+        element: <div></div>,
       },
-    ],
+    ], */
+  },
+  {
+    path: "/login",
+    element: <LoginRegister />,
+    /* children: [
+      {
+        path: "",
+        element: <div></div>,
+      },
+      {
+        path: "login",
+        element: <div></div>,
+      },
+    ], */
   },
 ];
-
-export const router = createBrowserRouter(routes);

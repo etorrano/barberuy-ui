@@ -1,6 +1,8 @@
 {
   "watch": ["server/", "src/"],
-  "exec": ["node --loader ts-node/esm server/index.ts"],
+  "exec": [
+    "node --experimental-specifier-resolution=node --loader ts-node/esm server/index.ts"
+  ],
   "ext": "ts, tsx, scss",
   "events": {
     "start": "npm run dev:build-client",

@@ -4,8 +4,13 @@ import path from "path";
 import { Writable } from "stream";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import { StaticRouter } from "react-router-dom/server";
-
+import {
+  createStaticHandler,
+  createStaticRouter,
+  StaticRouter,
+} from "react-router-dom/server";
+// @ts-ignore
+import App from "../src/App.tsx";
 class HtmlWritable extends Writable {
   chunks: any[] = [];
   html = "";
@@ -14,7 +19,14 @@ class HtmlWritable extends Writable {
     return this.html;
   }
 
+  reset() {
+    this.chunks = [];
+    this.html = "";
+  }
+
   _write(chunk: any, encoding: any, callback: any) {
+    console.log("writable");
+    console.log(chunk);
     this.chunks.push(chunk);
     callback();
   }
@@ -24,53 +36,60 @@ class HtmlWritable extends Writable {
     callback();
   }
 }
-
+/* let handler = createStaticHandler(routes); */
 const app = express();
 const PORT = process.env.PORT || 3000;
-const writable = new HtmlWritable();
-
-app.use(express.static(path.resolve(__dirname, "../build")));
 
 // This does the server-side rendering on the '/' route, works because we are a single page app
-app.use("/*", (req: any, res: any, next: any) => {
-  console.log(req.url);
-  fs.readFile(
-    path.resolve("./build/index.html"),
-    "utf-8",
-    (err: any, data: any) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send("Could not render the app server-side");
-      }
+app.use(
+  ["^/$", "/index", "/index.html", "/login"],
+  (req: any, res: any, next: any) => {
+    console.log(req.url);
 
-      const { pipe } = ReactDOMServer.renderToPipeableStream(
-        <React.StrictMode>
-          <StaticRouter location={req.url} />
-        </React.StrictMode>,
-        {
-          onShellReady() {
-            res.statusCode = 200;
-            res.setHeader("Content-type", "text/html");
-            pipe(writable);
-          },
-          onShellError() {
-            res.statusCode = 500;
-            res.send("<!doctype html><p>Loading...</p>");
-          },
+    const writable = new HtmlWritable();
+    fs.readFile(
+      path.resolve("./build/index.html"),
+      "utf-8",
+      (err: any, data: any) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send("Could not render the app server-side");
         }
-      );
+        console.log("render");
+        /* let router = createStaticRouter(
+          handler.dataRoutes,
+          null
+        ); */
+        const { pipe } = ReactDOMServer.renderToPipeableStream(
+          <StaticRouter location={req.url}>
+            <App />
+          </StaticRouter>,
+          {
+            onShellReady() {
+              console.log("on shell ready");
+              res.statusCode = 200;
+              res.setHeader("Content-type", "text/html");
+              pipe(writable);
+            },
+            onShellError() {
+              res.statusCode = 500;
+              res.send("<!doctype html><p>Loading...</p>");
+            },
+          }
+        );
 
-      writable.on("finish", () => {
-        const html = writable.getHtml();
-        const indexHTML = data
-          .toString()
-          .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
-        res.send(indexHTML); // In an express js context
-      });
-    }
-  );
-});
-
+        writable.on("finish", () => {
+          const html = writable.getHtml();
+          const indexHTML = data
+            .toString()
+            .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
+          res.send(indexHTML); // In an express js context
+        });
+      }
+    );
+  }
+);
+app.use(express.static(path.resolve(__dirname, "../build")));
 app.listen(PORT, () => {
   console.log("App is running on http://localhost:" + PORT);
 });

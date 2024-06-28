@@ -3,6 +3,7 @@ import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { StaticRouter } from "react-router-dom/server";
 import { Writable } from "stream";
+import App from "../src/App";
 
 class HtmlWritable extends Writable {
   chunks: any[] = [];
@@ -28,83 +29,103 @@ class HtmlWritable extends Writable {
 }
 const writable = new HtmlWritable();
 
-const handler = async function (event: any) {
-  try {
-    const request = event.Records[0].cf.request;
-    const s3 = new AWS.S3();
-    const params = { Bucket: "barberuy-s3-dev-ui", Key: "index.html" };
-    const s3Object = await s3.getObject(params).promise();
-    const data = s3Object.Body?.toString() || "";
-    console.log(data);
-    const { pipe } = ReactDOMServer.renderToPipeableStream(
-      <React.StrictMode>
-        <StaticRouter location={request.uri} />
-      </React.StrictMode>,
-      {
-        onShellReady() {
-          pipe(writable);
-        },
-        onShellError() {
-          return {
-            status: 500,
-            statusDescription: "OK",
-            headers: {
-              "cache-control": [
-                {
-                  key: "Cache-Control",
-                  value: "max-age=100",
-                },
-              ],
-              "content-type": [
-                {
-                  key: "Content-Type",
-                  value: "text/html",
-                },
-              ],
-            },
-            body: "<!doctype html><p>Loading...</p>",
-          };
-        },
-      }
-    );
-    console.log("await writable on finish");
-    await new Promise((resolve, reject) => {
-      writable.on("finish", resolve);
-      console.log("finished");
-    });
+// @ts-ignore
+const handler = awslambda.streamifyResponse(
+  async (event: any, responseStream: any) => {
+    //const handler = async function (event: any) {
+    try {
+      const request = event.Records[0].cf.request;
+      /* if (["/", "/index.html"].indexOf(request.uri) !== -1) { */
+      const s3 = new AWS.S3();
+      const params = { Bucket: "barberuy-s3-dev-ui", Key: "index.html" };
+      const s3Object = await s3.getObject(params).promise();
+      const data = s3Object.Body?.toString() || "";
+      console.log(data);
+      const { pipe } = ReactDOMServer.renderToPipeableStream(
+        <React.StrictMode>
+          <StaticRouter location={request.uri}></StaticRouter>
+        </React.StrictMode>,
+        {
+          onShellReady() {
+            console.log("shell ready");
+            pipe(writable);
+          },
+          onAllReady() {},
+          onShellError() {
+            return {
+              status: 500,
+              statusDescription: "OK",
+              headers: {
+                "cache-control": [
+                  {
+                    key: "Cache-Control",
+                    value: "max-age=100",
+                  },
+                ],
+                "content-type": [
+                  {
+                    key: "Content-Type",
+                    value: "text/html",
+                  },
+                ],
+              },
+              body: "<!doctype html><p>Loading...</p>",
+            };
+          },
+        }
+      );
+      console.log("await writable on finish");
+      await new Promise((resolve, reject) => {
+        writable.on("finish", resolve);
+        console.log("finished");
+      });
 
-    const html = writable.getHtml();
-    console.log("writable on finish");
-    console.log(html);
-    const indexHTML = data
-      .toString()
-      .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
-    console.log("html");
-    console.log(indexHTML);
-    return {
-      status: "200",
-      statusDescription: "OK",
-      headers: {
-        "cache-control": [
-          {
-            key: "Cache-Control",
-            value: "max-age=100",
-          },
-        ],
-        "content-type": [
-          {
-            key: "Content-Type",
-            value: "text/html",
-          },
-        ],
-      },
-      body: indexHTML,
-    };
-  } catch (error: any) {
-    console.log(`Error ${error.message}`);
-    return `Error ${error}`;
+      /*writable.on("finish", () => {*/
+      const html = writable.getHtml();
+      console.log("writable on finish");
+      console.log(html);
+      const indexHTML = data
+        .toString()
+        .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
+      console.log("html");
+      console.log(indexHTML);
+      const response = {
+        status: "200",
+        statusDescription: "OK",
+        headers: {
+          "cache-control": [
+            {
+              key: "Cache-Control",
+              value: "no-cache",
+            },
+          ],
+          "content-type": [
+            {
+              key: "Content-Type",
+              value: "text/html",
+            },
+          ],
+        },
+        body: indexHTML,
+      };
+      responseStream.setContentType("application/json");
+      responseStream.write(response);
+      responseStream.end();
+      /*responseStream.end(response);*/
+
+      /*responseStream.setContentType("text/html");
+        responseStream.write(indexHTML);
+        responseStream.end();*/
+      /*});*/
+      /*    } else {
+        responseStream.end();
+      } */
+    } catch (error: any) {
+      console.log(`Error ${error.message}`);
+      return `Error ${error}`;
+    }
   }
-};
+);
 
 export { handler };
 

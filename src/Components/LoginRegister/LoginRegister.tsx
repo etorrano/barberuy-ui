@@ -1,6 +1,7 @@
 import "./LoginRegister.scss";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { FaUser, FaLock } from "react-icons/fa";
+import React from "react";
 
 function LoginRegister() {
   const [showing, setShowing] = useState(false);
@@ -9,13 +10,14 @@ function LoginRegister() {
     setShowing(true);
   }, []);
 
-  if (!showing) {
+  /*   if (!showing) {
     return null;
   }
   if (typeof window === "undefined") {
     return <></>;
-  } else {
-    return (
+  } else { */
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
       <div className="wrapper">
         <div className="form-box login">
           <form action="">
@@ -45,8 +47,9 @@ function LoginRegister() {
           </form>
         </div>
       </div>
-    );
-  }
+    </Suspense>
+  );
+  /* } */
 }
 
 export default LoginRegister;

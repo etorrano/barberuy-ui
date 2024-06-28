@@ -1,31 +1,48 @@
-import { useEffect, useState } from "react";
+/* import { useEffect, useState } from "react"; */
+import { Link, Outlet, Route, Routes } from "react-router-dom";
 import "./App.scss";
-import logo from "./logo.png";
+/* import LoginRegister from "./Components/LoginRegister/LoginRegister"; */
 
+import React, { Suspense } from "react";
+// @ts-ignore
+import LoginRegister from "./Components/LoginRegister/LoginRegister.tsx";
+// @ts-ignore
+import Home from "./Components/Home/Home.tsx";
+import {
+  BrowserRouter,
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import { router } from "./routes";
 function App() {
-  const [showing, setShowing] = useState(false);
+  /*   const [showing, setShowing] = useState(false);
 
   useEffect(() => {
     setShowing(true);
-  }, []);
+  }, []); */
 
-  if (!showing) {
+  /*   if (!showing) {
     return null;
   }
 
   if (typeof window === "undefined") {
     return <></>;
-  } else {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>Sitio en construcción</p> <br />
-          <p>Por consultas escribinos a contacto@barber.uy</p>
-        </header>
+  } else { */
+  return (
+    /* <RouterProvider router={router} /> */
+    /* <Suspense fallback={<p>Loading...</p>}> */
+    <div>
+      <div id="outlet">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginRegister />} />
+        </Routes>
       </div>
-    );
-  }
+    </div>
+
+    /* </Suspense> */
+  );
+  /* } */
 }
 
 export default App;

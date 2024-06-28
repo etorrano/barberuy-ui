@@ -4,33 +4,41 @@ import "./index.scss";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import LoginRegister from "./Components/LoginRegister/LoginRegister";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  BrowserRouter,
+  createBrowserRouter,
+  Route,
+  RouterProvider,
+  Routes,
+} from "react-router-dom";
+import { router } from "./routes";
 
-export const router = createBrowserRouter(
-  [
-    {
-      path: "/",
-      element: <App />,
-    },
-    {
-      path: "/login",
-      element: <LoginRegister />,
-    },
-  ],
-  {
-    future: {
-      v7_partialHydration: true,
-    },
-  }
-);
+/* ReactDOM.hydrateRoot(
+  document.getElementById("root") as HTMLElement,
+  <React.StrictMode>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<App />}></Route>
+        <Route path="/login" element={<LoginRegister />}></Route>
+      </Routes>
+    </BrowserRouter>
+  </React.StrictMode>
+); */
 
 ReactDOM.hydrateRoot(
   document.getElementById("root") as HTMLElement,
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 );
-
+/* ReactDOM.hydrateRoot(
+  document.getElementById("root") as HTMLElement,
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+); */
 /* ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <RouterProvider router={router} />

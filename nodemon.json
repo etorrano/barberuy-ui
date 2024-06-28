@@ -1,6 +1,6 @@
 {
   "watch": ["server/", "src/"],
-  "exec": ["node server/index.ts"],
+  "exec": ["node --loader ts-node/esm server/index.ts"],
   "ext": "ts, tsx, scss",
   "events": {
     "start": "npm run dev:build-client",

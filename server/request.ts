@@ -1,14 +1,21 @@
-export default function createFetchRequest(req: any, res: any) {
+export default function createFetchRequest(
+  reqUri: string,
+  reqHeaders: any,
+  reqMethod: string,
+  reqBody: any,
+  res: any
+) {
   //let origin = `${req.protocol}://${req.get("host")}`;
   // Note: This had to take originalUrl into account for presumably vite's proxying
-  let url = new URL("https://www.barber.uy");
+  let url = new URL("https://www.barber.uy" + reqUri);
+  console.log(url);
 
   let controller = new AbortController();
   res.on("close", () => controller.abort());
 
   let headers = new Headers();
 
-  /* for (let [key, values] of Object.entries(req.headers)) {
+  for (let [key, values] of Object.entries(reqHeaders)) {
     if (values) {
       if (Array.isArray(values)) {
         for (let value of values) {
@@ -18,16 +25,16 @@ export default function createFetchRequest(req: any, res: any) {
         headers.set(key, values as string);
       }
     }
-  } */
+  }
 
   let init = {
-    method: req.method,
+    method: reqMethod,
     headers,
     signal: controller.signal,
   };
 
-  if (req.method !== "GET" && req.method !== "HEAD") {
-    init["body"] = req.body;
+  if (reqMethod !== "GET" && reqMethod !== "HEAD") {
+    init["body"] = reqBody;
   }
 
   return new Request(url.href, init);

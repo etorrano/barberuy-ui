@@ -51,7 +51,13 @@ app.use(
   async (req: any, res: any, next: any) => {
     console.log(req.url);
 
-    let fetchRequest = createFetchRequest(req, res);
+    let fetchRequest = createFetchRequest(
+      req.url,
+      req.headers,
+      req.method,
+      req.body,
+      res
+    );
     let context = await handler.query(fetchRequest);
     if (
       context instanceof Response &&

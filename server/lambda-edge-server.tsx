@@ -55,7 +55,10 @@ const handler = awslambda.streamifyResponse(
         console.log(data);
 
         let fetchRequest = createFetchRequest(
-          event.Records[0].cf.request,
+          request.uri,
+          request.headers,
+          request.method,
+          request.body,
           responseStream
         );
         let context = await routerStaticHandler.query(fetchRequest);

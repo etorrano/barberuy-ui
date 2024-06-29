@@ -1,9 +1,22 @@
+import React from "react";
 import "./LoginRegister.scss";
 import { Suspense } from "react";
 import { FaUser, FaLock } from "react-icons/fa";
-import React from "react";
 
 function LoginRegister() {
+  /*  const [showing, setShowing] = useState(false);
+
+  useEffect(() => {
+    setShowing(true);
+  }, []);
+
+  if (!showing) {
+    return null;
+  }
+
+  if (typeof window === "undefined") {
+    return <></>;
+  } else { */
   return (
     <Suspense fallback={<p>Loading...</p>}>
       <div className="wrapper">
@@ -37,7 +50,7 @@ function LoginRegister() {
       </div>
     </Suspense>
   );
-  /* } */
 }
+/* } */
 
 export default LoginRegister;

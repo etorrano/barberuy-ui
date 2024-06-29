@@ -12,7 +12,6 @@
     "@types/aws-lambda": "^8.10.140",
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1648.0",
-    "fs": "^0.0.1-security",
     "ignore-styles": "^5.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -23,16 +22,16 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
-    "test": "craco test",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
     "ssr": "npm run build && node server/index.ts",
     "build:edge": "webpack --config webpack.edge.js",
     "build:lambda": "webpack --config webpack.lambda.js",
     "build:server": "webpack --stats-error-details --config webpack.server.js",
+    "test": "react-scripts test",
     "test:lambda": "node -e \"console.log(require('./dist/index.js').handler(require('./event.json')));\"",
     "eject": "react-scripts eject",
-    "dev:build-client": "npm run build",
+    "dev:build-client": "react-scripts build",
     "dev:start": "nodemon",
     "dev": "npm-run-all dev:build-client dev:start"
   },
@@ -75,6 +74,5 @@
     "url-loader": "^4.1.1",
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
-  },
-  "cracoConfig": "craco.config.js"
+  }
 }

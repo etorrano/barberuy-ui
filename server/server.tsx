@@ -100,9 +100,13 @@ app.use(
 
           writable.on("finish", () => {
             const html = writable.getHtml();
+            console.log("html");
+            console.log(html);
             const indexHTML = data
               .toString()
               .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
+            //.replaceAll('<img src="', '<img src="data:image/png;base64,');
+            console.log(indexHTML);
             res.send(indexHTML); // In an express js context
           });
         }
@@ -112,5 +116,5 @@ app.use(
 );
 app.use(express.static(path.resolve(__dirname, "../build")));
 app.listen(PORT, () => {
-  console.log("App is running on http://localhost:" + PORT);
+  console.log("Server is running on http://localhost:" + PORT);
 });

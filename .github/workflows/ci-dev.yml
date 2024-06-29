@@ -2,7 +2,7 @@ name: ci-dev
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: ["dev"]
 
 jobs:
   build:
@@ -15,21 +15,26 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20.14.0'
+          node-version: "20.14.0"
 
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_IMAGE_INLINE_SIZE_LIMIT: 700000
+
       - name: Build
         run: npm run build
-        
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1  # Change this to your region of your bucket  
-    
+          aws-region: us-east-1 # Change this to your region of your bucket
+
       - name: Sync to S3
         run: aws s3 sync build s3://${{ secrets.AWS_S3_BUCKET }}
 

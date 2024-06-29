@@ -12,6 +12,7 @@
     "@types/aws-lambda": "^8.10.140",
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1648.0",
+    "fs": "^0.0.1-security",
     "ignore-styles": "^5.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -22,16 +23,16 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "ssr": "npm run build && node server/index.ts",
     "build:edge": "webpack --config webpack.edge.js",
     "build:lambda": "webpack --config webpack.lambda.js",
     "build:server": "webpack --stats-error-details --config webpack.server.js",
-    "test": "react-scripts test",
     "test:lambda": "node -e \"console.log(require('./dist/index.js').handler(require('./event.json')));\"",
     "eject": "react-scripts eject",
-    "dev:build-client": "react-scripts build",
+    "dev:build-client": "npm run build",
     "dev:start": "nodemon",
     "dev": "npm-run-all dev:build-client dev:start"
   },
@@ -55,6 +56,7 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.24.7",
+    "@craco/craco": "^7.1.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "css-loader": "^7.1.2",
@@ -73,5 +75,6 @@
     "url-loader": "^4.1.1",
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
-  }
+  },
+  "cracoConfig": "craco.config.js"
 }

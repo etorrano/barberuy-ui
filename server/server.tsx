@@ -91,6 +91,7 @@ app.use(
               context={context as StaticHandlerContext}
             />,
             {
+              bootstrapScripts: ["main.js"],
               onShellReady() {
                 console.log("on shell ready");
                 res.statusCode = 200;
@@ -121,6 +122,7 @@ app.use(
   }
 );
 app.use(express.static(path.resolve(__dirname, "../build")));
+app.use(express.static(path.resolve(__dirname, ".")));
 app.listen(PORT, () => {
   console.log("Server is running on http://localhost:" + PORT);
 });

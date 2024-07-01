@@ -53,9 +53,9 @@ const handler = awslambda.streamifyResponse(
         const s3Object = await s3.getObject(params).promise();
         const data = s3Object.Body?.toString() || "";
         console.log(data);
-
+        let url = request.uri === "/index.html" ? "" : request.uri;
         let fetchRequest = createFetchRequest(
-          request.uri,
+          url,
           request.headers,
           request.method,
           request.body,
@@ -144,10 +144,17 @@ const handler = awslambda.streamifyResponse(
         responseStream.end();*/
         /*});*/
       } else {
+        return request;
+        /* const key =
+          request.uri.split("/").length > 1
+            ? request.uri
+            : request.uri.replace("/", "");
         const params = {
           Bucket: "barberuy-s3-dev-ui",
-          Key: request.uri.replace("/", ""),
+          Key: key,
         };
+
+        console.log(key);
         const s3Object = await s3.getObject(params).promise();
         const data = s3Object.Body?.toString() || "";
         const response = {
@@ -156,7 +163,7 @@ const handler = awslambda.streamifyResponse(
           body: data,
         };
         responseStream.write(response);
-        responseStream.end();
+        responseStream.end(); */
       }
     } catch (error: any) {
       console.log(`Error ${error.message}`);

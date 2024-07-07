@@ -3,6 +3,40 @@ import "./LoginRegister.scss";
 import { Suspense } from "react";
 import { FaLock, FaEnvelope } from "react-icons/fa";
 
+async function fetchWithRedirect(url: any, options: any = {}) {
+  const MAX_REDIRECTS = 5; // Limit the number of redirects to prevent loops
+  let redirectCount = 0;
+  let requestUrl = url;
+  let requestOptions: any = { ...options, redirect: "manual" }; // Prevent automatic redirects
+
+  while (redirectCount < MAX_REDIRECTS) {
+    const response = await fetch(requestUrl, requestOptions);
+
+    // Check for redirect response
+    if (response.status >= 300 && response.status < 400) {
+      const location =
+        response.headers.get("Location") || response.headers.get("report-to");
+
+      if (!location || new URL(location, url).href === new URL(url).href) {
+        // No valid Location to follow or same URL
+        break;
+      }
+
+      requestUrl = location;
+      // Preserve the method and body for POST requests
+      requestOptions = {
+        ...requestOptions,
+        body: options.body,
+      };
+      redirectCount++;
+    } else {
+      return response; // Return the final response if not a redirect
+    }
+  }
+
+  throw new Error(`Too many redirects. Limit of ${MAX_REDIRECTS} exceeded.`);
+}
+
 function LoginRegister() {
   /*  const [showing, setShowing] = useState(false);
 
@@ -19,6 +53,9 @@ function LoginRegister() {
   } else { */
 
   const [action, setAction] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const registerLink = () => {
     setAction("active");
@@ -28,19 +65,70 @@ function LoginRegister() {
     setAction("");
   };
 
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+
+    try {
+      const options = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      };
+      let response = await fetch(
+        "http://api-dev.barber.uy/auth/login",
+        options
+      );
+      console.log(response);
+
+      if (response.redirected) {
+        console.log(response.headers);
+        const newUrl = response.headers.get("Location");
+        if (newUrl) {
+          // Retry the request with the new URL
+          response = await fetch(newUrl, options);
+        }
+      }
+      const r = await response.json();
+      // Handle successful login
+      console.log("Login successful:", r.access_token);
+      if (r.access_token) {
+        window.alert("Sesión iniciada");
+      } else {
+        setError("Correo o contraseña incorrecto");
+      }
+    } catch (err) {
+      setError("Invalid credentials or server error.");
+      console.error("Login failed:", err);
+    }
+  };
+
   return (
     <Suspense fallback={<p>Loading...</p>}>
       <div className="container">
         <div className={`wrapper ${action}`}>
           <div className="form-box login">
-            <form action="">
+            <form onSubmit={handleSubmit}>
               <h1>Iniciar Sesión</h1>
               <div className="input-box">
-                <input type="email" placeholder="Correo electrónico" required />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Correo electrónico"
+                  required
+                />
                 <FaEnvelope className="icon" />
               </div>
               <div className="input-box">
-                <input type="password" placeholder="Contraseña" required />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Contraseña"
+                  required
+                />
                 <FaLock className="icon" />
               </div>
 

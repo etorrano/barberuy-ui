@@ -5,7 +5,7 @@
   ],
   "ext": "ts, tsx, scss",
   "events": {
-    "start": "npm run dev:build-client",
-    "exit": "npm run dev:build-client"
+    "start": "npm run build:server",
+    "exit": "npm run build:server"
   }
 }

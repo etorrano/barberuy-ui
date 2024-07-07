@@ -1,4 +1,7 @@
 const path = require("path");
+const imageInlineSizeLimit = parseInt(
+  process.env.IMAGE_INLINE_SIZE_LIMIT || "10000"
+);
 
 module.exports = {
   entry: "./server/lambda-edge-server.tsx",
@@ -36,10 +39,43 @@ module.exports = {
           "sass-loader",
         ],
       },
+      // "url" loader works like "file" loader except that it embeds assets
+      // smaller than specified limit in bytes as data URLs to avoid requests.
+      // A missing `test` is equivalent to a match.
       {
-        test: /\.(png|svg|jpg|jpeg|gif)$/i,
-        type: "asset/resource",
+        test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: "[name].[hash:20].[ext]",
+              outputPath: "/static/media",
+              publicPath: "/static/media",
+              esModule: false, // <- here
+            },
+          },
+        ],
       },
+      /*  {
+        test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+        type: "asset",
+        parser: {
+          dataUrlCondition: {
+            maxSize: imageInlineSizeLimit,
+          },
+        },
+      }, */
+      /* {
+        test: /\.(png|jpg|gif)$/i,
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 8192,
+            },
+          },
+        ],
+      }, */
     ],
   },
   resolve: {

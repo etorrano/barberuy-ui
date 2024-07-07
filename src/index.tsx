@@ -26,12 +26,26 @@ export const router = createBrowserRouter(routes);
     </BrowserRouter>
   </React.StrictMode>
 ); */
-ReactDOM.hydrateRoot(
-  document.getElementById("root") as HTMLElement,
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
-);
+
+/* @ts-ignore */
+const isSSRDisabled = window.__SSR_DISABLED__;
+
+if (isSSRDisabled) {
+  ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode>
+  );
+} else {
+  // SSR is enabled, use hydrateRoot for hydration
+  ReactDOM.hydrateRoot(
+    document.getElementById("root") as HTMLElement,
+    <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode>
+  );
+}
+
 /* ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <RouterProvider router={router} />

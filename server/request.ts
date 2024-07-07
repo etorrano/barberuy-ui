@@ -3,15 +3,15 @@ export default function createFetchRequest(
   reqHeaders: any,
   reqMethod: string,
   reqBody: any,
-  res: any
+  res: any,
+  host: string = "www.barber.uy"
 ) {
-  //let origin = `${req.protocol}://${req.get("host")}`;
+  const origin = `https://${host}`;
   // Note: This had to take originalUrl into account for presumably vite's proxying
-  let url = new URL("https://www.barber.uy" + reqUri);
-  console.log(url);
+  let url = new URL(origin + reqUri);
 
   let controller = new AbortController();
-  res.on("close", () => controller.abort());
+  // if (typeof res.on === "function") res.on("close", () => controller.abort());
 
   let headers = new Headers();
 

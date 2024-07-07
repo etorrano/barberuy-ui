@@ -56,16 +56,20 @@ module.exports = {
       },
 
       {
-        test: /\.(png|jpg|gif)$/i,
+        test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
         use: [
           {
-            loader: "url-loader",
+            loader: "file-loader",
             options: {
-              limit: 8192,
+              name: "[name].[hash:20].[ext]",
+              outputPath: "/static/media",
+              publicPath: "/static/media",
+              esModule: false, // <- here
             },
           },
         ],
       },
+
       /*   {
         test: /\.css$/i,
         use: [MiniCssExtractPlugin.loader, "css-loader"],

@@ -5,13 +5,41 @@ import {
   createStaticHandler,
   createStaticRouter,
   StaticHandlerContext,
-  StaticRouter,
   StaticRouterProvider,
 } from "react-router-dom/server";
 import { Writable } from "stream";
-import App from "../src/App";
 import { routes } from "../src/routes"; // @ts-ignore
 import createFetchRequest from "./request";
+import type {
+  APIGatewayProxyEventV2,
+  APIGatewayProxyStructuredResultV2,
+  Context,
+} from "aws-lambda";
+
+export type AWSResponseStream = Writable;
+
+export type AWSStreamResponseMetadata = Pick<
+  APIGatewayProxyStructuredResultV2,
+  "statusCode" | "headers" | "cookies"
+>;
+
+export type AwsLambdaGlobal = {
+  streamifyResponse: (
+    handler: (
+      event: any,
+      response: AWSResponseStream,
+      context: Context
+    ) => Promise<void>
+  ) => any;
+  HttpResponseStream: {
+    from: (
+      stream: AWSResponseStream,
+      httpResponseMetadata: AWSStreamResponseMetadata
+    ) => AWSResponseStream;
+  };
+};
+
+declare const awslambda: AwsLambdaGlobal;
 
 class HtmlWritable extends Writable {
   chunks: any[] = [];
@@ -36,141 +64,187 @@ class HtmlWritable extends Writable {
   }
 }
 let routerStaticHandler = createStaticHandler(routes);
+const OMITTED_PATHS = [
+  /^\/images\//,
+  /^\/css\//,
+  /^\/js\//,
+  /^\/static\//,
+  /^\/media\//,
+  /\.(png|js|css|json|xml|txt|ico)$/,
+];
 
-// @ts-ignore
-const handler = awslambda.streamifyResponse(
-  async (event: any, responseStream: any) => {
-    const writable = new HtmlWritable();
-    //const handler = async function (event: any) {
-    try {
-      const request = event.Records[0].cf.request;
-      const s3 = new AWS.S3();
-      if (["/", "/index.html", "/login", "login"].indexOf(request.uri) !== -1) {
-        const params = {
-          Bucket: "barberuy-s3-dev-ui",
-          Key: "index.html",
-        };
-        const s3Object = await s3.getObject(params).promise();
-        const data = s3Object.Body?.toString() || "";
-        console.log(data);
-        let url = request.uri === "/index.html" ? "" : request.uri;
-        let fetchRequest = createFetchRequest(
-          url,
-          request.headers,
-          request.method,
-          request.body,
-          responseStream
-        );
-        let context = await routerStaticHandler.query(fetchRequest);
-        let router = createStaticRouter(
-          routerStaticHandler.dataRoutes,
-          context as StaticHandlerContext
-        );
-        const { pipe } = ReactDOMServer.renderToPipeableStream(
-          <StaticRouterProvider
-            router={router}
-            context={context as StaticHandlerContext}
-          />,
-          {
-            onShellReady() {
-              console.log("shell ready");
-              pipe(writable);
-            },
-            onAllReady() {},
-            onShellError() {
-              return {
-                status: 500,
-                statusDescription: "OK",
-                headers: {
-                  "cache-control": [
-                    {
-                      key: "Cache-Control",
-                      value: "max-age=100",
-                    },
-                  ],
-                  "content-type": [
-                    {
-                      key: "Content-Type",
-                      value: "text/html",
-                    },
-                  ],
+const handler = async (event, context, callback) => {
+  let request = event.Records[0].cf.request;
+  const response = event.Records[0].cf.response;
+  console.log(request.uri);
+  // Check if the request path matches any omitted path
+  const shouldOmit = OMITTED_PATHS.some((path) => path.test(request.uri));
+
+  if (shouldOmit) {
+    // If path is omitted, return the response as is, without processing
+    return callback(null, request); // Bypass Lambda and let CloudFront handle it
+  }
+  console.log("streamify");
+  try {
+    const stream = //awslambda.streamifyResponse(
+      async (request, responseStream: any) => {
+        console.log("writable");
+
+        //const response = event.Records[0].cf.response;
+        console.log(request.uri);
+        const writable = new HtmlWritable();
+        //const handler = async function (event: any) {
+        try {
+          console.log("s3");
+          const s3 = new AWS.S3();
+          /* if (["/", "/index.html", "/login", "login"].indexOf(request.uri) !== -1) { */
+          const shouldOmit = OMITTED_PATHS.some((path) =>
+            path.test(request.uri)
+          );
+
+          /* if (!shouldOmit) { */
+          const params = {
+            Bucket: "barberuy-s3-dev-ui",
+            Key: "index.html",
+          };
+          const s3Object = await s3.getObject(params).promise();
+          const data = s3Object.Body?.toString() || "";
+          console.log(data);
+          let url = request.uri === "/index.html" ? "" : request.uri;
+          let fetchRequest = createFetchRequest(
+            url,
+            request.headers,
+            request.method,
+            request.body,
+            responseStream
+          );
+          let context = await routerStaticHandler.query(fetchRequest);
+          let router = createStaticRouter(
+            routerStaticHandler.dataRoutes,
+            context as StaticHandlerContext
+          );
+          const { pipe } = ReactDOMServer.renderToPipeableStream(
+            <StaticRouterProvider
+              router={router}
+              context={context as StaticHandlerContext}
+            />,
+            {
+              onShellReady() {
+                console.log("shell ready");
+                pipe(writable);
+              },
+              onAllReady() {},
+              onShellError() {
+                console.log("onshell error");
+                /* return {
+                  status: 500,
+                  statusDescription: "OK",
+                  headers: {
+                    "cache-control": [
+                      {
+                        key: "Cache-Control",
+                        value: "max-age=100",
+                      },
+                    ],
+                    "content-type": [
+                      {
+                        key: "Content-Type",
+                        value: "text/html",
+                      },
+                    ],
+                  },
+                  body: "<!doctype html><p>Loading...</p>",
+                }; */
+              },
+            }
+          );
+          console.log("await writable on finish");
+          await new Promise((resolve, reject) => {
+            writable.on("finish", resolve);
+            console.log("finished");
+          });
+
+          /*writable.on("finish", () => {*/
+          const html = writable.getHtml();
+          console.log("writable on finish");
+          console.log(html);
+          const indexHTML = data
+            .toString()
+            .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
+          console.log("html");
+          console.log(indexHTML);
+          const response = {
+            status: "200",
+            statusDescription: "OK",
+            headers: {
+              "cache-control": [
+                {
+                  key: "Cache-Control",
+                  value: "no-cache",
                 },
-                body: "<!doctype html><p>Loading...</p>",
-              };
+              ],
+              "content-type": [
+                {
+                  key: "Content-Type",
+                  value: "text/html",
+                },
+              ],
             },
-          }
-        );
-        console.log("await writable on finish");
-        await new Promise((resolve, reject) => {
-          writable.on("finish", resolve);
-          console.log("finished");
-        });
+            body: indexHTML,
+          };
+          return response;
+          /* responseStream.setContentType("application/json");
+          responseStream.write(response);
+          responseStream.end(); */
+          /*responseStream.end(response);*/
 
-        /*writable.on("finish", () => {*/
-        const html = writable.getHtml();
-        console.log("writable on finish");
-        console.log(html);
-        const indexHTML = data
-          .toString()
-          .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
-        console.log("html");
-        console.log(indexHTML);
-        const response = {
-          status: "200",
-          statusDescription: "OK",
-          headers: {
-            "cache-control": [
-              {
-                key: "Cache-Control",
-                value: "no-cache",
-              },
-            ],
-            "content-type": [
-              {
-                key: "Content-Type",
-                value: "text/html",
-              },
-            ],
-          },
-          body: indexHTML,
-        };
-        responseStream.setContentType("application/json");
-        responseStream.write(response);
-        responseStream.end();
-        /*responseStream.end(response);*/
-
-        /*responseStream.setContentType("text/html");
+          /*responseStream.setContentType("text/html");
         responseStream.write(indexHTML);
         responseStream.end();*/
-        /*});*/
-      } else {
-        return request;
-        /* const key =
-          request.uri.split("/").length > 1
-            ? request.uri
-            : request.uri.replace("/", "");
-        const params = {
-          Bucket: "barberuy-s3-dev-ui",
-          Key: key,
-        };
+          /*});*/
+          /* } else {
+            const key = request.uri.startsWith("/")
+              ? request.uri.replace("/", "")
+              : request.uri;
+            const params = {
+              Bucket: "barberuy-s3-dev-ui",
+              Key: key,
+            };
 
-        console.log(key);
-        const s3Object = await s3.getObject(params).promise();
+            console.log(key);
+            const s3Stream = s3.getObject(params).createReadStream();
+            responseStream.setContentType("image/png");
+            /* responseStream.setHeader("Content-Type", "image/png");
+        responseStream.setHeader(
+          "Content-Disposition",
+          'inline; filename="logo.png"'
+        ); */
+
+          /*s3Stream.pipe(responseStream);
+            /* const s3Object = await s3.getObject(params).promise();
         const data = s3Object.Body?.toString() || "";
+
         const response = {
           status: "200",
           statusDescription: "OK",
           body: data,
         };
+        responseStream.setContentType("application/json");
         responseStream.write(response);
-        responseStream.end(); */
-      }
-    } catch (error: any) {
-      console.log(`Error ${error.message}`);
-      return `Error ${error}`;
-    }
+        responseStream.end(); 
+          } */
+        } catch (error: any) {
+          console.log(`Error ${error.message}`);
+          /* return `Error ${error}`;*/
+        }
+      };
+    console.log("calling stream");
+    return await stream(request, response);
+  } catch (error: any) {
+    console.log("error in streamify response");
+    console.log(error);
   }
-);
+};
 
 export { handler };
 

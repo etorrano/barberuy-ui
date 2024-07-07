@@ -36,7 +36,7 @@ function LoginRegister() {
             <form action="">
               <h1>Iniciar Sesión</h1>
               <div className="input-box">
-                <input type="text" placeholder="Correo electrónico" required />
+                <input type="email" placeholder="Correo electrónico" required />
                 <FaEnvelope className="icon" />
               </div>
               <div className="input-box">
@@ -45,15 +45,17 @@ function LoginRegister() {
               </div>
 
               <div className="remember-forgot">
-                <label>
-                  <input type="checkbox" />
-                  Recordame
-                </label>
-                <a href="/">Olvidé mi contraseña</a>
+                <div className="flex-row">
+                  <label>
+                    <input type="checkbox" />
+                    Recordame
+                  </label>
+                  <a href="/">Olvidé mi contraseña</a>
+                </div>
                 <button type="submit">Iniciar sesión</button>
                 <div className="register-link">
                   <p>
-                    ¿No tienes cuenta aún?
+                    ¿Aún no tenés cuenta?
                     {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                     <a onClick={registerLink}>Registrate</a>
                   </p>
@@ -65,7 +67,7 @@ function LoginRegister() {
             <form action="">
               <h1>Registro</h1>
               <div className="input-box">
-                <input type="text" placeholder="Correo electrónico" required />
+                <input type="email" placeholder="Correo electrónico" required />
                 <FaEnvelope className="icon" />
               </div>
               <div className="input-box">
@@ -75,10 +77,10 @@ function LoginRegister() {
 
               <div className="remember-forgot">
                 <label>
-                  <input type="checkbox" />
+                  <input type="checkbox" required />
                   Acepto los términos y condiciones
                 </label>
-                <button type="submit">Iniciar sesión</button>
+                <button type="submit">Registrar</button>
                 <div className="register-link">
                   <p>
                     {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}

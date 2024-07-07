@@ -7,7 +7,7 @@
 
   .wrapper {
     position: relative;
-    background: transparent;
+    background: #fff;
     border: 2px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(30px);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -16,10 +16,8 @@
     border-radius: 10px;
     display: flex;
     align-items: center;
-    transition: height 0.2s ease;
     overflow: hidden;
     &.active {
-      height: 520px;
       .form-box {
         &.login {
           transition: none;
@@ -39,6 +37,7 @@
       width: 100%;
       padding: 40px;
       form {
+        margin: 1rem;
         h1 {
           font-size: 36px;
           text-align: center;
@@ -54,19 +53,19 @@
             background: transparent;
             border: none;
             outline: none;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid #ccc;
             border-radius: 40px;
             font-size: 16px;
-            color: #fff;
+            color: #000;
             padding: 20px 45px 20px 20px;
             &::placeholder {
-              color: #fff;
+              color: #ccc;
             }
           }
           .icon {
             position: absolute;
             right: 20px;
-            top: 50px;
+            top: 26px;
             translate: 0 -50%;
             font-size: 16px;
           }
@@ -74,14 +73,20 @@
         .remember-forgot {
           display: flex;
           justify-content: space-between;
+          flex-direction: column;
+          gap: 1rem;
           font-size: 14.5px;
           margin: -15px 0 15px;
+          .flex-row {
+            align-items: center;
+            justify-content: space-between;
+          }
           label input {
-            accent-color: #fff;
+            accent-color: #000;
             margin-right: 4px;
           }
           a {
-            color: #fff;
+            color: #000;
             text-decoration: none;
             &:hover {
               text-decoration: underline;
@@ -91,14 +96,14 @@
         button {
           width: 100%;
           height: 45px;
-          background: #fff;
+          background: #282c34;
           border: none;
           outline: none;
           border-radius: 40px;
           box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
           cursor: pointer;
           font-size: 16px;
-          color: #333;
+          color: #fff;
           font-weight: 700;
         }
         .register-link {
@@ -106,9 +111,10 @@
           text-align: center;
           margin: 20px 0 15px;
           p a {
-            color: #fff;
+            color: #000;
             text-decoration: none;
             font-weight: 600;
+            margin-left: .5rem;
             &:hover {
               text-decoration: underline;
             }

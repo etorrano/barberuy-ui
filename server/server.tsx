@@ -46,14 +46,17 @@ const router = express.Router();
 
 const processRequest = async (req: any, res: any, next: any) => {
   console.log(req.url);
-  const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
+
+  const host = req.headers.host;
+  const parsedUrl = new URL(req.url, `http://${host}`);
+
   let fetchRequest = createFetchRequest(
     parsedUrl.pathname,
     req.headers,
     req.method,
     req.body,
     res,
-    req.get("host")
+    host
   );
   let context = await handler.query(fetchRequest);
   if (
@@ -105,13 +108,31 @@ const processRequest = async (req: any, res: any, next: any) => {
           const html = writable.getHtml();
           console.log("html");
           console.log(html);
-          const indexHTML = data
+          let indexHTML = data
             .toString()
             .replace(
               "<script>window.__SSR_DISABLED__ = true;</script>",
               "<script>window.__SSR_DISABLED__ = false;</script>"
             )
             .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
+
+          const subdomain = host.split(".")[0];
+          console.log(subdomain);
+          if (subdomain === "jet") {
+            const newTitle = "Barbería Jet - Agendá tu turno";
+            const newDescription = "Agendá turno en Barbería Jet Uruguay";
+            const newContent = "<p>Barbería Jet</p><br />";
+            indexHTML = indexHTML
+              .replace(/<title>.*<\/title>/, `<title>${newTitle}</title>`)
+              .replace(
+                /<meta\s+name="description".*?\/>\s*/,
+                `<meta name="description" content="${newDescription}/>`
+              )
+              .replace(
+                '<div id="content"></div>',
+                `<div id="content">${newContent}</div>`
+              );
+          }
           //.replaceAll('<img src="', '<img src="data:image/png;base64,');
           console.log(indexHTML);
           res.send(indexHTML); // In an express js context

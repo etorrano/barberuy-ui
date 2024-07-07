@@ -3,40 +3,6 @@ import "./LoginRegister.scss";
 import { Suspense } from "react";
 import { FaLock, FaEnvelope } from "react-icons/fa";
 
-async function fetchWithRedirect(url: any, options: any = {}) {
-  const MAX_REDIRECTS = 5; // Limit the number of redirects to prevent loops
-  let redirectCount = 0;
-  let requestUrl = url;
-  let requestOptions: any = { ...options, redirect: "manual" }; // Prevent automatic redirects
-
-  while (redirectCount < MAX_REDIRECTS) {
-    const response = await fetch(requestUrl, requestOptions);
-
-    // Check for redirect response
-    if (response.status >= 300 && response.status < 400) {
-      const location =
-        response.headers.get("Location") || response.headers.get("report-to");
-
-      if (!location || new URL(location, url).href === new URL(url).href) {
-        // No valid Location to follow or same URL
-        break;
-      }
-
-      requestUrl = location;
-      // Preserve the method and body for POST requests
-      requestOptions = {
-        ...requestOptions,
-        body: options.body,
-      };
-      redirectCount++;
-    } else {
-      return response; // Return the final response if not a redirect
-    }
-  }
-
-  throw new Error(`Too many redirects. Limit of ${MAX_REDIRECTS} exceeded.`);
-}
-
 function LoginRegister() {
   /*  const [showing, setShowing] = useState(false);
 
@@ -140,6 +106,8 @@ function LoginRegister() {
                   </label>
                   <a href="/">Olvidé mi contraseña</a>
                 </div>
+
+                {error && <p className="error">{error}</p>}
                 <button type="submit">Iniciar sesión</button>
                 <div className="register-link">
                   <p>

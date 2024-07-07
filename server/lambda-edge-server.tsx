@@ -76,6 +76,8 @@ const OMITTED_PATHS = [
 const handler = async (event, context, callback) => {
   let request = event.Records[0].cf.request;
   const response = event.Records[0].cf.response;
+  const host = event.Records[0].cf.config.distributionDomainName;
+
   console.log(request.uri);
   // Check if the request path matches any omitted path
   const shouldOmit = OMITTED_PATHS.some((path) => path.test(request.uri));
@@ -111,32 +113,33 @@ const handler = async (event, context, callback) => {
           const data = s3Object.Body?.toString() || "";
           console.log(data);
           let url = request.uri === "/index.html" ? "" : request.uri;
-          let fetchRequest = createFetchRequest(
-            url,
-            request.headers,
-            request.method,
-            request.body,
-            responseStream
-          );
-          let context = await routerStaticHandler.query(fetchRequest);
-          let router = createStaticRouter(
-            routerStaticHandler.dataRoutes,
-            context as StaticHandlerContext
-          );
-          const { pipe } = ReactDOMServer.renderToPipeableStream(
-            <StaticRouterProvider
-              router={router}
-              context={context as StaticHandlerContext}
-            />,
-            {
-              onShellReady() {
-                console.log("shell ready");
-                pipe(writable);
-              },
-              onAllReady() {},
-              onShellError() {
-                console.log("onshell error");
-                /* return {
+          if (request.uri !== "/login") {
+            let fetchRequest = createFetchRequest(
+              url,
+              request.headers,
+              request.method,
+              request.body,
+              responseStream
+            );
+            let context = await routerStaticHandler.query(fetchRequest);
+            let router = createStaticRouter(
+              routerStaticHandler.dataRoutes,
+              context as StaticHandlerContext
+            );
+            const { pipe } = ReactDOMServer.renderToPipeableStream(
+              <StaticRouterProvider
+                router={router}
+                context={context as StaticHandlerContext}
+              />,
+              {
+                onShellReady() {
+                  console.log("shell ready");
+                  pipe(writable);
+                },
+                onAllReady() {},
+                onShellError() {
+                  console.log("onshell error");
+                  /* return {
                   status: 500,
                   statusDescription: "OK",
                   headers: {
@@ -155,44 +158,82 @@ const handler = async (event, context, callback) => {
                   },
                   body: "<!doctype html><p>Loading...</p>",
                 }; */
-              },
-            }
-          );
-          console.log("await writable on finish");
-          await new Promise((resolve, reject) => {
-            writable.on("finish", resolve);
-            console.log("finished");
-          });
+                },
+              }
+            );
+            console.log("await writable on finish");
+            await new Promise((resolve, reject) => {
+              writable.on("finish", resolve);
+              console.log("finished");
+            });
 
-          /*writable.on("finish", () => {*/
-          const html = writable.getHtml();
-          console.log("writable on finish");
-          console.log(html);
-          const indexHTML = data
-            .toString()
-            .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
-          console.log("html");
-          console.log(indexHTML);
-          const response = {
-            status: "200",
-            statusDescription: "OK",
-            headers: {
-              "cache-control": [
-                {
-                  key: "Cache-Control",
-                  value: "no-cache",
-                },
-              ],
-              "content-type": [
-                {
-                  key: "Content-Type",
-                  value: "text/html",
-                },
-              ],
-            },
-            body: indexHTML,
-          };
-          return response;
+            /*writable.on("finish", () => {*/
+            const html = writable.getHtml();
+            console.log("writable on finish");
+            console.log(html);
+            let indexHTML = data
+              .toString()
+              .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
+            const subdomain = host.split(".")[0];
+            console.log(subdomain);
+            if (subdomain === "jet") {
+              const newTitle = "Barbería Jet - Agendá tu turno";
+              const newDescription = "Agendá turno en Barbería Jet Uruguay";
+              const newContent = "<p>Barbería Jet</p><br />";
+              indexHTML = indexHTML
+                .replace(/<title>.*<\/title>/, `<title>${newTitle}</title>`)
+                .replace(
+                  /<meta\s+name="description".*?\/>\s*/,
+                  `<meta name="description" content="${newDescription}/>`
+                )
+                .replace(
+                  '<div id="content"></div>',
+                  `<div id="content">${newContent}</div>`
+                );
+            }
+
+            console.log("html");
+            console.log(indexHTML);
+            return {
+              status: "200",
+              statusDescription: "OK",
+              headers: {
+                "cache-control": [
+                  {
+                    key: "Cache-Control",
+                    value: "no-cache",
+                  },
+                ],
+                "content-type": [
+                  {
+                    key: "Content-Type",
+                    value: "text/html",
+                  },
+                ],
+              },
+              body: indexHTML,
+            };
+          } else {
+            return {
+              status: "200",
+              statusDescription: "OK",
+              headers: {
+                "cache-control": [
+                  {
+                    key: "Cache-Control",
+                    value: "no-cache",
+                  },
+                ],
+                "content-type": [
+                  {
+                    key: "Content-Type",
+                    value: "text/html",
+                  },
+                ],
+              },
+              body: data,
+            };
+          }
           /* responseStream.setContentType("application/json");
           responseStream.write(response);
           responseStream.end(); */

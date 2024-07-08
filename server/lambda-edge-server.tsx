@@ -76,7 +76,7 @@ const OMITTED_PATHS = [
 const handler = async (event, context, callback) => {
   let request = event.Records[0].cf.request;
   const response = event.Records[0].cf.response;
-  const host = event.Records[0].cf.config.distributionDomainName;
+  const host = request.headers?.host[0]?.value;
 
   console.log(request.uri);
   // Check if the request path matches any omitted path
@@ -174,7 +174,7 @@ const handler = async (event, context, callback) => {
             let indexHTML = data
               .toString()
               .replace('<div id="root"></div>', `<div id="root">${html}</div>`);
-            const subdomain = host.split(".")[0];
+            const subdomain = host?.split(".")[0];
             console.log(subdomain);
             if (subdomain === "jet") {
               const newTitle = "Barbería Jet - Agendá tu turno";

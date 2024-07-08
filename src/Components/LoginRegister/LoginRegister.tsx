@@ -43,7 +43,7 @@ function LoginRegister() {
         body: JSON.stringify({ email, password }),
       };
       let response = await fetch(
-        "http://api-dev.barber.uy/auth/login",
+        "https://api-dev.barber.uy/auth/login",
         options
       );
       console.log(response);
